@@ -1,24 +1,29 @@
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { ReactNode, createContext, useContext, useEffect, useState } from "react"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface TaskContextProps {
-  tasks: ITask[]
-  addNewTask: (taskTitle: string) => void
-  finishTask: (taskId: string) => void
-  removeTask: (taskId: string) => void
+  tasks: ITask[];
+  addNewTask: (taskTitle: string) => void;
+  finishTask: (taskId: string) => void;
+  removeTask: (taskId: string) => void;
 }
 
-const taskContext = createContext({} as TaskContextProps)
+const taskContext = createContext({} as TaskContextProps);
 
 interface ITask {
-  id: string
-  title: string
-  finished: boolean
+  id: string;
+  title: string;
+  finished: boolean;
 }
 
-
 export function TaskProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<ITask[]>([])
+  const [tasks, setTasks] = useState<ITask[]>([]);
 
   async function addNewTask(taskTitle: string) {
     const newTask: ITask = {
@@ -28,16 +33,18 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     };
 
     setTasks((tasks) => [...tasks, newTask]);
-    await AsyncStorage.setItem('tasks', JSON.stringify([...tasks, newTask]));
+    await AsyncStorage.setItem("tasks", JSON.stringify([...tasks, newTask]));
   }
 
   function finishTask(taskId: string) {
-    const taskFinished = tasks.map(task => {
-      return task.id === taskId ? {
-        ...task,
-        finished: !task.finished
-      } : task
-    })
+    const taskFinished = tasks.map((task) => {
+      return task.id === taskId
+        ? {
+            ...task,
+            finished: !task.finished,
+          }
+        : task;
+    });
 
     setTasks(taskFinished);
   }
@@ -50,18 +57,18 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        const value = JSON.parse(await AsyncStorage.getItem('tasks'));
+        const value = JSON.parse((await AsyncStorage.getItem("tasks")) || "[]");
 
         if (!value) {
-          console.log("Nenhuma task encontrada")
+          console.log("Nenhuma task encontrada");
         }
 
-        setTasks(value)
-      } catch (e) { }
-    }
+        setTasks(value);
+      } catch (e) {}
+    };
 
-    loadTasks()
-  }, [])
+    loadTasks();
+  }, []);
 
   return (
     <taskContext.Provider
@@ -69,12 +76,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         addNewTask,
         finishTask,
         removeTask,
-        tasks
+        tasks,
       }}
     >
       {children}
     </taskContext.Provider>
-  )
+  );
 }
 
-export const useTask = () => useContext(taskContext)
+export const useTask = () => useContext(taskContext);
